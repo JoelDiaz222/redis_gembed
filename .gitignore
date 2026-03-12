@@ -1,0 +1,5 @@
+.idea/
+deps/
+*.o
+redis_gembed.so
+redis_gembed.dylib
