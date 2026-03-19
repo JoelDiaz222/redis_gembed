@@ -92,7 +92,7 @@ static int embed_texts_to_batch(RedisModuleCtx *ctx,
 }
 
 /* =========================================================================
- * GEMBED.EMBED <embedder> <model> <text>
+ * G.EMBED <embedder> <model> <text>
  *
  * Returns one bulk-string: raw IEEE-754 float32 bytes (dim * 4 bytes).
  * ========================================================================= */
@@ -129,10 +129,10 @@ static int GembedEmbed_RedisCommand(RedisModuleCtx *ctx,
 }
 
 /* =========================================================================
- * GEMBED.EMBEDS <embedder> <model> <text> [<text> ...]
+ * G.EMBEDS <embedder> <model> <text> [<text> ...]
  *
  * Returns an array where each element is a raw float32 bulk-string
- * (same format as GEMBED.EMBED).
+ * (same format as G.EMBED).
  * ========================================================================= */
 static int GembedEmbeds_RedisCommand(RedisModuleCtx *ctx,
                                      RedisModuleString **argv,
@@ -207,18 +207,18 @@ int RedisModule_OnLoad(RedisModuleCtx *ctx,
             == REDISMODULE_ERR)
         return REDISMODULE_ERR;
 
-    /* GEMBED.EMBED embedder model text → bulk-string */
+    /* G.EMBED embedder model text → bulk-string */
     if (RedisModule_CreateCommand(ctx,
-            "gembed.embed",
+            "g.embed",
             GembedEmbed_RedisCommand,
             "readonly fast",
             /*first_key=*/0, /*last_key=*/0, /*step=*/0)
             == REDISMODULE_ERR)
         return REDISMODULE_ERR;
 
-    /* GEMBED.EMBEDS embedder model text [text ...] → array */
+    /* G.EMBEDS embedder model text [text ...] → array */
     if (RedisModule_CreateCommand(ctx,
-            "gembed.embeds",
+            "g.embeds",
             GembedEmbeds_RedisCommand,
             "readonly fast",
             /*first_key=*/0, /*last_key=*/0, /*step=*/0)

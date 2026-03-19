@@ -5,9 +5,9 @@ redis_gembed + vectorset demo: Semantic Article Search
 Demonstrates the full integration between redis_gembed and Redis/Valkey's
 native vectorset module:
 
-  1. Batch-embed 15 articles via GEMBED.EMBEDS
+  1. Batch-embed 15 articles via G.EMBEDS
   2. Index them with VADD + SETATTR (category + year metadata)
-  3. Run semantic searches via GEMBED.EMBED + VSIM
+  3. Run semantic searches via G.EMBED + VSIM
   4. Run hybrid searches combining vector similarity with attribute filters
   5. Inspect the index with VINFO / VCARD / VGETATTR
 
@@ -259,13 +259,13 @@ def main() -> None:
     r.delete(VSET)
 
     # Step 1: Batch embed
-    section("Step 1 — Batch-embed all articles via GEMBED.EMBEDS")
+    section("Step 1 — Batch-embed all articles via G.EMBEDS")
 
     texts = [a["text"] for a in ARTICLES]
-    print(f"  Calling GEMBED.EMBEDS with {len(texts)} texts…")
+    print(f"  Calling G.EMBEDS with {len(texts)} texts…")
 
     blobs: list[bytes] = r.execute_command(
-        "GEMBED.EMBEDS", EMBEDDER, MODEL, *texts
+        "G.EMBEDS", EMBEDDER, MODEL, *texts
     )
 
     dim = len(blobs[0]) // 4
@@ -304,7 +304,7 @@ def main() -> None:
     print(f"    → {attrs_raw.decode()}")
 
     # Step 4: Semantic search
-    section("Step 4 — Semantic search (GEMBED.EMBED + VSIM)")
+    section("Step 4 — Semantic search (G.EMBED + VSIM)")
 
     queries = [
         "how to make language models follow instructions",
@@ -315,7 +315,7 @@ def main() -> None:
     ]
 
     for query in queries:
-        blob = r.execute_command("GEMBED.EMBED", EMBEDDER, MODEL, query)
+        blob = r.execute_command("G.EMBED", EMBEDDER, MODEL, query)
         results = r.execute_command(
             "VSIM", VSET, "FP32", blob,
             "COUNT", 3,
@@ -335,7 +335,7 @@ def main() -> None:
     ]
 
     for query, filt in hybrid_queries:
-        blob = r.execute_command("GEMBED.EMBED", EMBEDDER, MODEL, query)
+        blob = r.execute_command("G.EMBED", EMBEDDER, MODEL, query)
         results = r.execute_command(
             "VSIM", VSET, "FP32", blob,
             "COUNT", 3,

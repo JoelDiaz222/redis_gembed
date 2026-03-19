@@ -9,17 +9,17 @@ using the same Gembed Rust core as [pg_gembed](https://github.com/JoelDiaz222/pg
 
 | Command                                              | Description                                 |
 |------------------------------------------------------|---------------------------------------------|
-| `GEMBED.EMBED <embedder> <model> <text>`             | Embed a single string → binary float32 blob |
-| `GEMBED.EMBEDS <embedder> <model> <text> [<text> …]` | Embed multiple strings → array of blobs     |
+| `G.EMBED <embedder> <model> <text>`             | Embed a single string → binary float32 blob |
+| `G.EMBEDS <embedder> <model> <text> [<text> …]` | Embed multiple strings → array of blobs     |
 
 ### Examples
 
 ```bash
 # Embed one document
-GEMBED.EMBED embed_anything sentence-transformers/all-MiniLM-L6-v2 "First document"
+G.EMBED embed_anything sentence-transformers/all-MiniLM-L6-v2 "First document"
 
 # Get multiple embeddings
-GEMBED.EMBEDS embed_anything sentence-transformers/all-MiniLM-L6-v2 \
+G.EMBEDS embed_anything sentence-transformers/all-MiniLM-L6-v2 \
     "First document" \
     "Second document" \
     "Third document"
@@ -29,8 +29,8 @@ GEMBED.EMBEDS embed_anything sentence-transformers/all-MiniLM-L6-v2 \
 
 Both commands return **raw little-endian IEEE-754 float32** bytes:
 
-- `GEMBED.EMBED` → bulk-string of `dim × 4` bytes
-- `GEMBED.EMBEDS` → Redis array, each element a bulk-string of `dim × 4` bytes
+- `G.EMBED` → bulk-string of `dim × 4` bytes
+- `G.EMBEDS` → Redis array, each element a bulk-string of `dim × 4` bytes
 
 ## Supported Embedders & Models
 
@@ -42,7 +42,7 @@ registered there can be used with this module.
 ```
 ┌──────────────────────────────────────────┐
 │          Redis Client Command            │
-│   GEMBED.EMBED embed_anything <model>    │
+│   G.EMBED embed_anything <model>       │
 │                  "Hello Redis"           │
 └─────────────────────┬────────────────────┘
                       │
