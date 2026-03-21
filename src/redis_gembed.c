@@ -9,31 +9,31 @@
  * ========================================================================= */
 
 /*
- * resolve_embedder_and_model
+ * resolve_backend_and_model
  *
- * Validates the embedder name and model name against the Rust library and
- * fills *embedder_id / *model_id.  On any failure it replies with an error
+ * Validates the backend name and model name against the Rust library and
+ * fills *backend_id / *model_id.  On any failure it replies with an error
  * to the client and returns REDISMODULE_ERR.
  */
-static int resolve_embedder_and_model(RedisModuleCtx *ctx,
-                                      const char *embedder_str,
+static int resolve_backend_and_model(RedisModuleCtx *ctx,
+                                      const char *backend_str,
                                       const char *model_str,
-                                      int *embedder_id,
+                                      int *backend_id,
                                       int *model_id)
 {
-    *embedder_id = validate_embedder(embedder_str);
-    if (*embedder_id < 0) {
+    *backend_id = validate_backend(backend_str);
+    if (*backend_id < 0) {
         RedisModule_ReplyWithErrorFormat(ctx,
-            "ERR Unknown embedder '%s'", embedder_str);
+            "ERR Unknown backend '%s'", backend_str);
         return REDISMODULE_ERR;
     }
 
-    *model_id = validate_embedding_model(*embedder_id, model_str,
+    *model_id = validate_model(*backend_id, model_str,
                                          INPUT_TYPE_TEXT);
     if (*model_id < 0) {
         RedisModule_ReplyWithErrorFormat(ctx,
-            "ERR Model '%s' not supported by embedder '%s' for text input",
-            model_str, embedder_str);
+            "ERR Model '%s' not supported by backend '%s' for text input",
+            model_str, backend_str);
         return REDISMODULE_ERR;
     }
 
@@ -49,7 +49,7 @@ static int resolve_embedder_and_model(RedisModuleCtx *ctx,
  * On failure replies with an error to the client and returns REDISMODULE_ERR.
  */
 static int embed_texts_to_batch(RedisModuleCtx *ctx,
-                                int embedder_id,
+                                int backend_id,
                                 int model_id,
                                 const char **texts,
                                 size_t n_texts,
@@ -74,7 +74,7 @@ static int embed_texts_to_batch(RedisModuleCtx *ctx,
     input.n_texts     = n_texts;
 
     memset(batch, 0, sizeof(*batch));
-    int rc = generate_embeddings(embedder_id, model_id, &input, batch);
+    int rc = generate_embeddings(backend_id, model_id, &input, batch);
     RedisModule_Free(slices);
 
     if (rc < 0) {
@@ -92,7 +92,7 @@ static int embed_texts_to_batch(RedisModuleCtx *ctx,
 }
 
 /* =========================================================================
- * G.EMBED <embedder> <model> <text>
+ * G.EMBED <backend> <model> <text>
  *
  * Returns one bulk-string: raw IEEE-754 float32 bytes (dim * 4 bytes).
  * ========================================================================= */
@@ -104,19 +104,19 @@ static int GembedEmbed_RedisCommand(RedisModuleCtx *ctx,
         return RedisModule_WrongArity(ctx);
     }
 
-    size_t embedder_len, model_len, text_len;
-    const char *embedder_str = RedisModule_StringPtrLen(argv[1], &embedder_len);
+    size_t backend_len, model_len, text_len;
+    const char *backend_str = RedisModule_StringPtrLen(argv[1], &backend_len);
     const char *model_str    = RedisModule_StringPtrLen(argv[2], &model_len);
     const char *text_str     = RedisModule_StringPtrLen(argv[3], &text_len);
 
-    int embedder_id, model_id;
-    if (resolve_embedder_and_model(ctx, embedder_str, model_str,
-                                   &embedder_id, &model_id) != REDISMODULE_OK)
+    int backend_id, model_id;
+    if (resolve_backend_and_model(ctx, backend_str, model_str,
+                                   &backend_id, &model_id) != REDISMODULE_OK)
         return REDISMODULE_OK; /* error already sent */
 
     EmbeddingBatch batch;
     const char *texts[1] = { text_str };
-    if (embed_texts_to_batch(ctx, embedder_id, model_id,
+    if (embed_texts_to_batch(ctx, backend_id, model_id,
                              texts, 1, &batch) != REDISMODULE_OK)
         return REDISMODULE_OK; /* error already sent */
 
@@ -129,7 +129,7 @@ static int GembedEmbed_RedisCommand(RedisModuleCtx *ctx,
 }
 
 /* =========================================================================
- * G.EMBEDS <embedder> <model> <text> [<text> ...]
+ * G.EMBEDS <backend> <model> <text> [<text> ...]
  *
  * Returns an array where each element is a raw float32 bulk-string
  * (same format as G.EMBED).
@@ -142,8 +142,8 @@ static int GembedEmbeds_RedisCommand(RedisModuleCtx *ctx,
         return RedisModule_WrongArity(ctx);
     }
 
-    size_t embedder_len, model_len;
-    const char *embedder_str = RedisModule_StringPtrLen(argv[1], &embedder_len);
+    size_t backend_len, model_len;
+    const char *backend_str = RedisModule_StringPtrLen(argv[1], &backend_len);
     const char *model_str    = RedisModule_StringPtrLen(argv[2], &model_len);
 
     int n_texts      = argc - 3;  /* argv[3..] are the input texts */
@@ -158,15 +158,15 @@ static int GembedEmbeds_RedisCommand(RedisModuleCtx *ctx,
         texts[i] = RedisModule_StringPtrLen(argv[3 + i], &tlen);
     }
 
-    int embedder_id, model_id;
-    if (resolve_embedder_and_model(ctx, embedder_str, model_str,
-                                   &embedder_id, &model_id) != REDISMODULE_OK) {
+    int backend_id, model_id;
+    if (resolve_backend_and_model(ctx, backend_str, model_str,
+                                   &backend_id, &model_id) != REDISMODULE_OK) {
         RedisModule_Free(texts);
         return REDISMODULE_OK;
     }
 
     EmbeddingBatch batch;
-    if (embed_texts_to_batch(ctx, embedder_id, model_id,
+    if (embed_texts_to_batch(ctx, backend_id, model_id,
                              texts, (size_t)n_texts, &batch) != REDISMODULE_OK) {
         RedisModule_Free(texts);
         return REDISMODULE_OK;
@@ -207,7 +207,7 @@ int RedisModule_OnLoad(RedisModuleCtx *ctx,
             == REDISMODULE_ERR)
         return REDISMODULE_ERR;
 
-    /* G.EMBED embedder model text → bulk-string */
+    /* G.EMBED backend model text → bulk-string */
     if (RedisModule_CreateCommand(ctx,
             "g.embed",
             GembedEmbed_RedisCommand,
@@ -216,7 +216,7 @@ int RedisModule_OnLoad(RedisModuleCtx *ctx,
             == REDISMODULE_ERR)
         return REDISMODULE_ERR;
 
-    /* G.EMBEDS embedder model text [text ...] → array */
+    /* G.EMBEDS backend model text [text ...] → array */
     if (RedisModule_CreateCommand(ctx,
             "g.embeds",
             GembedEmbeds_RedisCommand,

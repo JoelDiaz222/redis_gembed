@@ -47,16 +47,16 @@ typedef struct {
  * Rust C FFI entry points
  * ----------------------------------------------------------------------- */
 
-/* Returns embedder ID (>= 0) on success, negative on failure */
-extern int validate_embedder(const char *name);
+/* Returns backend ID (>= 0) on success, negative on failure */
+extern int validate_backend(const char *name);
 
 /* Returns model ID (>= 0) on success, negative on failure */
-extern int validate_embedding_model(int embedder_id, const char *model,
+extern int validate_model(int backend_id, const char *model,
                                     int input_type);
 
 /* Fills *out_batch; caller must call free_embedding_batch when done.
  * Returns 0 on success, negative error code on failure. */
-extern int generate_embeddings(int embedder_id, int model_id,
+extern int generate_embeddings(int backend_id, int model_id,
                                const InputData *input_data,
                                EmbeddingBatch  *out_batch);
 
