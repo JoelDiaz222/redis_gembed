@@ -1,5 +1,5 @@
-#ifndef GEMBED_H
-#define GEMBED_H
+#ifndef REDIS_GEMBED_H
+#define REDIS_GEMBED_H
 
 #include <stddef.h>
 
@@ -63,4 +63,4 @@ extern int generate_embeddings(int backend_id, int model_id,
 /* Releases the float buffer inside *batch (allocated by Rust) */
 extern void free_embedding_batch(EmbeddingBatch *batch);
 
-#endif /* GEMBED_H */
+#endif /* REDIS_GEMBED_H */

@@ -1,5 +1,5 @@
 #include "redismodule.h"
-#include "gembed.h"
+#include "redis_gembed.h"
 
 #include <stdlib.h>
 #include <string.h>
