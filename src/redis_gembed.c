@@ -96,7 +96,7 @@ static int embed_texts_to_batch(RedisModuleCtx *ctx,
  *
  * Returns one bulk-string: raw IEEE-754 float32 bytes (dim * 4 bytes).
  * ========================================================================= */
-static int GembedEmbed_RedisCommand(RedisModuleCtx *ctx,
+static int GEmbed_RedisCommand(RedisModuleCtx *ctx,
                                     RedisModuleString **argv,
                                     int argc)
 {
@@ -106,8 +106,8 @@ static int GembedEmbed_RedisCommand(RedisModuleCtx *ctx,
 
     size_t backend_len, model_len, text_len;
     const char *backend_str = RedisModule_StringPtrLen(argv[1], &backend_len);
-    const char *model_str    = RedisModule_StringPtrLen(argv[2], &model_len);
-    const char *text_str     = RedisModule_StringPtrLen(argv[3], &text_len);
+    const char *model_str = RedisModule_StringPtrLen(argv[2], &model_len);
+    const char *text_str = RedisModule_StringPtrLen(argv[3], &text_len);
 
     int backend_id, model_id;
     if (resolve_backend_and_model(ctx, backend_str, model_str,
@@ -134,7 +134,7 @@ static int GembedEmbed_RedisCommand(RedisModuleCtx *ctx,
  * Returns an array where each element is a raw float32 bulk-string
  * (same format as G.EMBED).
  * ========================================================================= */
-static int GembedEmbeds_RedisCommand(RedisModuleCtx *ctx,
+static int GEmbeds_RedisCommand(RedisModuleCtx *ctx,
                                      RedisModuleString **argv,
                                      int argc)
 {
@@ -144,9 +144,9 @@ static int GembedEmbeds_RedisCommand(RedisModuleCtx *ctx,
 
     size_t backend_len, model_len;
     const char *backend_str = RedisModule_StringPtrLen(argv[1], &backend_len);
-    const char *model_str    = RedisModule_StringPtrLen(argv[2], &model_len);
+    const char *model_str = RedisModule_StringPtrLen(argv[2], &model_len);
 
-    int n_texts      = argc - 3;  /* argv[3..] are the input texts */
+    int n_texts = argc - 3;  /* argv[3..] are the input texts */
     const char **texts = RedisModule_Alloc(sizeof(char *) * n_texts);
     if (!texts) {
         RedisModule_ReplyWithError(ctx, "ERR out of memory");
@@ -210,7 +210,7 @@ int RedisModule_OnLoad(RedisModuleCtx *ctx,
     /* G.EMBED backend model text → bulk-string */
     if (RedisModule_CreateCommand(ctx,
             "g.embed",
-            GembedEmbed_RedisCommand,
+            GEmbed_RedisCommand,
             "readonly fast",
             /*first_key=*/0, /*last_key=*/0, /*step=*/0)
             == REDISMODULE_ERR)
@@ -219,7 +219,7 @@ int RedisModule_OnLoad(RedisModuleCtx *ctx,
     /* G.EMBEDS backend model text [text ...] → array */
     if (RedisModule_CreateCommand(ctx,
             "g.embeds",
-            GembedEmbeds_RedisCommand,
+            GEmbeds_RedisCommand,
             "readonly fast",
             /*first_key=*/0, /*last_key=*/0, /*step=*/0)
             == REDISMODULE_ERR)
