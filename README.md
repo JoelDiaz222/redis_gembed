@@ -1,9 +1,10 @@
 # redis_gembed
 
-A Redis module that brings ML-powered text embedding generation into Redis,
-using the same Gembed Rust core as [pg_gembed](https://github.com/JoelDiaz222/pg_gembed).
+A Redis module that brings ML-powered text embedding generation into Redis, by using the
+[Gembed Rust core](https://github.com/JoelDiaz222/gembed).
 
-The module is a thin adapter that marshals Redis command arguments into the C ABI of the portable Gembed Rust core (`libgembed`), which handles model loading and inference locally — no external microservices required.
+The module is a thin adapter that marshals Redis command arguments into the C ABI of the portable Gembed Rust core
+(`libgembed`), which handles model loading and inference.
 
 ## Commands
 
@@ -114,4 +115,4 @@ make demo
 
 ## License
 
-Apache License 2.0
+Licensed under the [Apache License 2.0](./LICENSE).
